@@ -1,12 +1,13 @@
 """Training loop and utilities."""
 
-from typing import Optional
+from typing import Optional, Dict
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
 from tqdm import tqdm
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 
 from ..data import AttackerDataset
 
@@ -119,6 +120,51 @@ class Trainer:
         
         print("Training complete!")
     
+    def evaluate(
+        self,
+        X: np.ndarray,
+        y: np.ndarray,
+        batch_size: int = 4096,
+        label: str = "Test"
+    ) -> Dict[str, float]:
+        """
+        Evaluate the model and return aggregate metrics.
+
+        Args:
+            X: Scaled feature array.
+            y: Ground-truth labels.
+            batch_size: Batch size for inference.
+            label: Label for print output (e.g. 'Test', 'Eval').
+
+        Returns:
+            Dict with Accuracy, Precision, Recall, F1_Score.
+        """
+        self.model.eval()
+        all_probs = []
+
+        for i in range(0, len(X), batch_size):
+            batch = torch.FloatTensor(X[i:i + batch_size]).to(self.device)
+            with torch.no_grad():
+                probs = torch.sigmoid(self.model(batch))
+                all_probs.append(probs.cpu().numpy().flatten())
+            del batch
+
+        probs = np.concatenate(all_probs)
+        preds = (probs > 0.5).astype(int)
+
+        metrics = {
+            'Accuracy': accuracy_score(y, preds),
+            'Precision': precision_score(y, preds, zero_division=0),
+            'Recall': recall_score(y, preds, zero_division=0),
+            'F1_Score': f1_score(y, preds, zero_division=0),
+        }
+
+        print(f"\n{label} Metrics ({len(y)} samples):")
+        for name, val in metrics.items():
+            print(f"  {name.replace('_', ' ')}: {val:.4f}")
+
+        return metrics
+
     def save(self, path: str) -> None:
         """Save model checkpoint."""
         torch.save({

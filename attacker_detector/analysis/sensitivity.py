@@ -101,11 +101,14 @@ def plot_sensitivity_metric(
     
     for i, param in enumerate(params):
         ax = axes[i]
-        data = sensitivity_df[sensitivity_df['Parameter_Type'] == param]
+        data = sensitivity_df[sensitivity_df['Parameter_Type'] == param].copy()
         
         if len(data) == 0:
             ax.set_title(f"No data for {param}")
             continue
+        
+        # Ensure Value is numeric (may be object dtype when mixed with string params)
+        data['Value'] = pd.to_numeric(data['Value'])
         
         ax.plot(
             data['Value'], data[metric],

@@ -25,7 +25,8 @@ CONTEXT_FEATURES = ['target_set_size', 'attacker_ratio', 'epsilon']
 PARAM_DISPLAY_MAP = {
     'epsilon': 'Epsilon ($\\epsilon$)',
     'attacker_ratio': 'Attacker Ratio ($\\beta$)',
-    'target_set_size': 'Target Set Size ($r$)'
+    'target_set_size': 'Target Set Size ($r$)',
+    'dataset_type': 'Dataset Type'
 }
 
 # Default training hyperparameters
@@ -67,4 +68,6 @@ DATASET_CONFIG_COLUMNS = [
     'target_set_size', 'attacker_ratio', 'protocol',
     'splits', 'epsilon', 'dataset_type'
 ]
+
+DATASET_TYPES = ['zipf', 'emoji', 'fire']
 

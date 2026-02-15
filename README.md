@@ -66,6 +66,15 @@ python main.py --data-path dataset.csv --model attention --epochs 15
 
 # Save outputs to directory
 python main.py --data-path dataset.csv --model mlp --output-dir ./results
+
+# Cross-dataset: train on zipf, test on emoji
+python main.py --data-path dataset.csv --model mlp \
+    --training-method cross --train-dataset zipf --test-dataset emoji
+
+# Three-way: train on zipf, test on emoji, evaluate on fire
+python main.py --data-path dataset.csv --model mlp \
+    --training-method three-way \
+    --train-dataset zipf --test-dataset emoji --eval-dataset fire
 ```
 ### CLI Arguments
 
@@ -77,10 +86,25 @@ python main.py --data-path dataset.csv --model mlp --output-dir ./results
 | `--batch-size`, `-b` | Batch size | 256 |
 | `--lr` | Learning rate | 0.001 |
 | `--dropout` | Dropout rate | 0.2 |
-| `--test-size` | Test split ratio | 0.2 |
+| `--test-size` | Test split ratio (only for `none` mode) | 0.2 |
 | `--seed` | Random seed | 42 |
 | `--output-dir`, `-o` | Save model/plots here | None |
 | `--no-plot` | Skip sensitivity plots | False |
+
+### Generalizability Training
+
+| Argument | Description | Default |
+|----------|-------------|---------|
+| `--training-method` | `none` (conventional random split), `cross` (train on one dataset type, test on another), `three-way` (train/test/eval on separate types) | `none` |
+| `--train-dataset` | Dataset type for training: `zipf`, `emoji`, `fire` (required for `cross` / `three-way`) | None |
+| `--test-dataset` | Dataset type for testing: `zipf`, `emoji`, `fire` (required for `cross` / `three-way`) | None |
+| `--eval-dataset` | Dataset type for evaluation: `zipf`, `emoji`, `fire` (required for `three-way`) | None |
+
+**Training methods:**
+
+- **`none`** — Conventional training. All dataset types are mixed together and split randomly into train/test sets using `--test-size`.
+- **`cross`** — Cross-dataset generalizability. The model is trained entirely on one dataset type and tested on another (e.g., train on `zipf`, test on `emoji`).
+- **`three-way`** — Full generalizability evaluation. Train on one type, test on a second, and run an additional evaluation + sensitivity analysis on a third (e.g., train `zipf`, test `emoji`, evaluate `fire`).
 
 ## License
 
