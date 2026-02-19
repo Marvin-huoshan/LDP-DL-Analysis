@@ -8,7 +8,7 @@ dependencies:
   - pytorch
   - torchvision
   - torchaudio
-  - cpuonly  # Remove this line if using GPU, add pytorch-cuda=11.8 instead
+  - pytorch-cuda=12.1
   - numpy
   - pandas
   - scikit-learn
