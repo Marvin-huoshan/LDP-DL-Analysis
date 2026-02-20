@@ -102,6 +102,7 @@ def parse_args():
     # Generalizability training settings
     parser.add_argument(
         '--training-method',
+        dest= 'training_method',
         type=str,
         default='none',
         choices=['none', 'cross', 'three-way'],
@@ -217,10 +218,14 @@ def main():
     
     trainer = Trainer(model, device, learning_rate=args.lr, model_type=args.model, epochs=args.epochs)
     trainer.fit(X_train, y_train, epochs=args.epochs, batch_size=args.batch_size)
+
+    # descriptive run name
+    global run_name
+    run_name = f"{args.model}_ep_{args.epochs}_lr_{args.lr}_bs_{args.batch_size}_drop_{args.dropout}_tm_{args.training_method}"
     
     if args.output_dir:
         os.makedirs(args.output_dir, exist_ok=True)
-        model_path = os.path.join(args.output_dir, 'model.pt')
+        model_path = os.path.join(args.output_dir, f'model_{run_name}.pt')
         trainer.save(model_path)
     
     test_label = f"Test ({args.test_dataset})" if args.training_method != 'none' else "Test"
@@ -242,7 +247,7 @@ def main():
     print(sensitivity_df.to_string(index=False))
     
     if args.output_dir:
-        results_path = os.path.join(args.output_dir, 'sensitivity_test_results.csv')
+        results_path = os.path.join(args.output_dir, f'sensitivity_test_results_{run_name}.csv')
         sensitivity_df.to_csv(results_path, index=False)
         print(f"\nTest results saved to: {results_path}")
     
@@ -272,7 +277,7 @@ def main():
         print(eval_sensitivity_df.to_string(index=False))
         
         if args.output_dir:
-            eval_results_path = os.path.join(args.output_dir, 'sensitivity_eval_results.csv')
+            eval_results_path = os.path.join(args.output_dir, f'sensitivity_eval_results_{run_name}.csv')
             eval_sensitivity_df.to_csv(eval_results_path, index=False)
             print(f"\nEval results saved to: {eval_results_path}")
         
@@ -292,7 +297,7 @@ def _save_sensitivity_plots(sensitivity_df, split_name, output_dir):
         if output_dir:
             save_path = os.path.join(
                 output_dir,
-                f'sensitivity_{split_name}_{metric.lower()}.png'
+                f'sensitivity_{split_name}_{metric.lower()}_{run_name}.png'
             )
         plot_sensitivity_metric(sensitivity_df, metric=metric, save_path=save_path)
 
