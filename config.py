@@ -58,9 +58,10 @@ DATASET_FEATURE_NAMES = [
     'num_ones', 'k_discrepancy', 'k_observed_frequency',
     'k_theoretical_frequency', 'freq_ratio', 'is_anomalous_k',
     'overlap_anomalous_items_count', 'overlap_anomalous_items_ratio',
-    'mean_item_freq_ratio', 'max_item_freq_ratio', 'std_item_freq_ratio',
+    'mean_item_freq_ratio', 'max_item_freq_ratio',
     'support_entropy', 'max_support_value',
     'theoretical_probability_k', 'log_likelihood',
+    'deviation',
     'wasserstein_distance_k', 'js_divergence_k',
 ]
 

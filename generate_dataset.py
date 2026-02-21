@@ -36,9 +36,10 @@ from attacker_detector.data.generators import (
     build_normal_lists_from_mechanism_stochastic,
     build_support_list_1_OUE,
     build_support_list_1_OLH,
+    build_support_list_1_OLH_Server,
     extract_user_level_features_diffstats_style,
 )
-from attacker_detector.data.generators.attacks import perturb_OUE_multi
+from attacker_detector.data.generators.attacks import perturb_OUE_multi, HST_Server, HST_Users
 
 
 def get_distribution_generator(dataset_type: str):
@@ -62,7 +63,8 @@ def generate_user_level_dataset(
     dataset_type: str = 'zipf',
     h_ao: int = 1,
     seed: int = None,
-    processors: int = 4
+    processors: int = 4,
+    olh_setting: str = 'server'
 ) -> tuple:
     """
     Generate user-level dataset with features and labels.
@@ -75,25 +77,35 @@ def generate_user_level_dataset(
 
     target_set = set(np.random.choice(domain, size=target_set_size, replace=False))
 
+    base_mechanism = 'OLH' if protocol in ('OLH', 'OLH_User', 'OLH_Server') else protocol
     ideal_support_list, ideal_one_list, ideal_ESTIMATE_DIST, _ = \
         build_normal_lists_from_mechanism_stochastic(
             epsilon=epsilon,
             d=domain,
             n=n,
-            mechanism=protocol,
+            mechanism=base_mechanism,
             seed=seed if seed else 42
         )
 
+    # Generate attacked batch (contains both benign and attackers)
     if protocol == "OLH":
         g = int(round(math.exp(epsilon))) + 1
         p = math.exp(epsilon) / (math.exp(epsilon) + g - 1)
         User_Seed = np.arange(n)
         Y = np.zeros(n)
 
-        support_list, one_list, ESTIMATE_DIST, _ = build_support_list_1_OLH(
-            domain, Y, n, User_Seed, ratio, g, target_set,
-            p, splits, h_ao, epsilon, processor=processors
-        )
+        if olh_setting == 'user':
+          support_list, one_list, ESTIMATE_DIST, _ = \
+            build_support_list_1_OLH(
+                domain, Y, n, User_Seed, ratio, g, target_set,
+                p, splits, h_ao, epsilon, processor=processors
+            )
+        else:
+          support_list, one_list, ESTIMATE_DIST, _ = \
+                  build_support_list_1_OLH_Server(
+                      domain, Y, n, User_Seed, ratio, g, target_set,
+                      p, splits, h_ao, epsilon, processor=processors
+                  )
 
     elif protocol == "OUE":
         Y_data = perturb_OUE_multi(
@@ -108,9 +120,34 @@ def generate_user_level_dataset(
             num_processes=processors
         )
 
-        support_list, one_list, ESTIMATE_DIST, _ = build_support_list_1_OUE(
-            Y_data, n, epsilon
-        )
+        support_list, one_list, ESTIMATE_DIST, _ = \
+            build_support_list_1_OUE(Y_data, n, epsilon)
+
+
+    elif protocol == "HST_User":
+        support_list, one_list, ESTIMATE_DIST, _ = \
+            HST_Users(
+                X=X,
+                ratio=ratio,
+                domain=domain,
+                epsilon=epsilon,
+                n=n,
+                target_set=target_set,
+                h_ao=h_ao,
+                splits=splits
+            )
+
+    elif protocol == "HST_Server":
+        support_list, one_list, ESTIMATE_DIST, _ = \
+            HST_Server(
+                X=X,
+                ratio=ratio,
+                domain=domain,
+                epsilon=epsilon,
+                n=n,
+                target_set=target_set,
+                splits=splits
+            )
     else:
         raise ValueError(f"Unknown protocol: {protocol}")
 
@@ -124,7 +161,8 @@ def generate_user_level_dataset(
         domain=domain,
         n=n
     )
-
+    # First n*(1-ratio) users are benign (label=0)
+    # Last n*ratio users are attackers (label=1)
     num_benign = int(n * (1 - ratio))
     user_labels = np.zeros(n)
     user_labels[num_benign:] = 1
@@ -150,7 +188,7 @@ def parse_args():
         '--protocols',
         nargs='+',
         default=['OUE', 'OLH'],
-        choices=['OUE', 'OLH'],
+        choices=['OUE', 'OLH', 'OLH_User', 'OLH_Server', 'HST_User', 'HST_Server'],
         help='LDP protocols to use'
     )
 
@@ -291,18 +329,29 @@ def main():
                                 try:
                                     seed = args.seed + config_count * 1000 + exp_i
 
+                                    if protocol == "OLH_User":
+                                        base_protocol = "OLH"
+                                        olh_setting = "user"
+                                    elif protocol == "OLH_Server":
+                                        base_protocol = "OLH"
+                                        olh_setting = "server"
+                                    else:
+                                        base_protocol = protocol
+                                        olh_setting = "server"
+
                                     features, labels = generate_user_level_dataset(
                                         epsilon=epsilon,
                                         domain=domain,
                                         n=n,
-                                        protocol=protocol,
+                                        protocol=base_protocol,
                                         ratio=ratio,
                                         target_set_size=target_size,
                                         splits=splits,
                                         dataset_type=dataset_type,
                                         h_ao=1,
                                         seed=seed,
-                                        processors=args.processors
+                                        processors=args.processors,
+                                        olh_setting=olh_setting
                                     )
 
                                     # Add config columns
