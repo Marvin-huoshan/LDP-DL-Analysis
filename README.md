@@ -26,12 +26,14 @@ Generate LDP attack detection training data:
 python generate_dataset.py --output dataset.csv
 
 # Custom configuration
-python generate_dataset.py --output custom.csv \
+python generate_dataset_parallel.py --output custom.csv \
     --protocols OUE OLH_Server OLH_User HST_User HST_Server \
     --epsilons 0.5 1.0 2.0 \
     --datasets zipf emoji fire \
     --ratios 0.10 0.15 0.20 \
-    --experiments 5
+    --experiments 5 \
+    --workers 20 \
+    --inner-processors 1
 ```
 
 ### Dataset Generation CLI Arguments
