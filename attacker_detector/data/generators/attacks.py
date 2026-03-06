@@ -268,7 +268,7 @@ def process_attacker(i, n, ratio, target_set, g, domain, splits, h_ao, e, K_valu
 
 
 def process_user_seeds(i, User_Seed_noattack, Y_Nattack, domain, g):
-    print("Processing index" + str(i))
+    #print("Processing index" + str(i))
     local_estimate = np.zeros(domain)
     user_seed = User_Seed_noattack[i]
     for v in range(domain):
@@ -372,11 +372,11 @@ def build_support_list_1_OLH(domain, Y, n, User_Seed, ratio, g, target_set, p, s
     # Parallel execution of process_attacker using multiprocessing
     with Pool(processes=processor) as pool:
         # Use imap to process in parallel and tqdm for progress bar
-        results = list(
+        results = list(tqdm(
             pool.imap(process_attacker_partial, range(num_attackers)),
             total=num_attackers,
             desc='Finding optimal seeds'
-        )
+        ))
 
     vector_matrix = np.zeros((num_attackers, domain))
     # Update User_Seed with the results from all attackers
@@ -484,11 +484,11 @@ def build_support_list_1_OLH_Server(domain, Y, n, User_Seed, ratio, g, target_se
     # Parallel execution of process_attacker using multiprocessing
     with Pool(processes=processor) as pool:
         # Use imap to process in parallel and tqdm for progress bar
-        results = list(
+        results = list(tqdm(
             pool.imap(process_attacker_partial, range(num_attackers)),
             total=num_attackers,
             desc='Processing attackers'
-        )
+        ))
 
     vector_matrix = np.zeros((num_attackers, domain))
     # Update User_Seed with the results from all attackers
