@@ -18,6 +18,18 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
+from config import (
+    DEFAULT_EPSILONS,
+    DEFAULT_RATIOS,
+    DEFAULT_TARGET_SIZES,
+    DEFAULT_SPLITS,
+    DEFAULT_SEED,
+    DATASET_CONFIGS,
+    DATASET_CONFIGS_FULL,
+    DATASET_FEATURE_NAMES,
+    DATASET_CONFIG_COLUMNS,
+)
+
 from attacker_detector.data.generators import (
     generate_zipf_dist,
     generate_emoji_dist,
