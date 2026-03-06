@@ -118,7 +118,7 @@ def generate_user_level_dataset(
             ratio=ratio,
             h_ao=h_ao,
             splits=splits,
-            num_processes=processors
+            num_processes=inner_processors
         )
 
         support_list, one_list, ESTIMATE_DIST, _ = \
@@ -192,13 +192,16 @@ def build_tasks(args):
                                 seed = args.seed + config_count * 1000 + exp_i
 
                                 if protocol == "OLH_User":
-                                    base_protocol = "OLH"
+                                    exec_protocol = "OLH"
+                                    protocol_name = "OLH_User"
                                     olh_setting = "user"
                                 elif protocol == "OLH_Server":
-                                    base_protocol = "OLH"
+                                    exec_protocol = "OLH"
+                                    protocol_name = "OLH_Server"
                                     olh_setting = "server"
                                 else:
-                                    base_protocol = protocol
+                                    exec_protocol = protocol
+                                    protocol_name = protocol
                                     olh_setting = "server"
 
                                 tasks.append({
@@ -206,7 +209,8 @@ def build_tasks(args):
                                     "dataset_type": dataset_type,
                                     "domain": domain,
                                     "n": n,
-                                    "protocol": base_protocol,
+                                    "protocol": exec_protocol,
+                                    "protocol_name": protocol_name,
                                     "ratio": ratio,
                                     "target_size": target_size,
                                     "splits": splits,
@@ -236,6 +240,7 @@ def run_one_task(task):
             h_ao=1,
             seed=task["seed"],
             inner_processors=task["inner_processors"],
+            olh_setting=task["olh_setting"],
         )
 
         num_users = len(labels)
@@ -243,7 +248,7 @@ def run_one_task(task):
         df_features = pd.DataFrame(features, columns=DATASET_FEATURE_NAMES)
         df_features["target_set_size"] = task["target_size"]
         df_features["attacker_ratio"] = task["ratio"]
-        df_features["protocol"] = task["protocol"]
+        df_features["protocol"] = task["protocol_name"]
         df_features["splits"] = task["splits"]
         df_features["epsilon"] = task["epsilon"]
         df_features["dataset_type"] = task["dataset_type"]
@@ -256,7 +261,7 @@ def run_one_task(task):
             "desc": (
                 f'cfg={task["config_id"]}, exp={task["exp_i"] + 1}, '
                 f'eps={task["epsilon"]}, data={task["dataset_type"]}, '
-                f'protocol={task["protocol"]}, ratio={task["ratio"]}, '
+                f'protocol={task["protocol_name"]}, ratio={task["ratio"]}, '
                 f'target={task["target_size"]}, splits={task["splits"]}'
             ),
             "df": df_features,
@@ -271,7 +276,7 @@ def run_one_task(task):
             "desc": (
                 f'cfg={task["config_id"]}, exp={task["exp_i"] + 1}, '
                 f'eps={task["epsilon"]}, data={task["dataset_type"]}, '
-                f'protocol={task["protocol"]}, ratio={task["ratio"]}, '
+                f'protocol={task["protocol_name"]}, ratio={task["ratio"]}, '
                 f'target={task["target_size"]}, splits={task["splits"]}'
             ),
         }
@@ -367,10 +372,23 @@ def parse_args():
     )
 
     parser.add_argument(
-        '--processors',
+        '--workers',
         type=int,
         default=4,
-        help='Number of parallel processes'
+        help='Number of OUTER parallel workers'
+    )
+
+    parser.add_argument(
+        '--inner-processors',
+        type=int,
+        default=1,
+        help='Number of INNER processes used inside protocol generation'
+    )
+
+    parser.add_argument(
+        '--append',
+        action='store_true',
+        help='Append to existing output file instead of overwriting'
     )
 
     parser.add_argument(
