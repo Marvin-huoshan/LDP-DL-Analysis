@@ -64,7 +64,7 @@ def generate_user_level_dataset(
     dataset_type: str = 'zipf',
     h_ao: int = 1,
     seed: int = None,
-    processors: int = 4,
+    inner_processors: int = 1,
     olh_setting: str = 'server'
 ) -> tuple:
     """
@@ -99,13 +99,13 @@ def generate_user_level_dataset(
           support_list, one_list, ESTIMATE_DIST, _ = \
             build_support_list_1_OLH(
                 domain, Y, n, User_Seed, ratio, g, target_set,
-                p, splits, h_ao, epsilon, processor=processors
+                p, splits, h_ao, epsilon, processor=inner_processors
             )
         else:
           support_list, one_list, ESTIMATE_DIST, _ = \
                   build_support_list_1_OLH_Server(
                       domain, Y, n, User_Seed, ratio, g, target_set,
-                      p, splits, h_ao, epsilon, processor=processors
+                      p, splits, h_ao, epsilon, processor=inner_processors
                   )
 
     elif protocol == "OUE":
