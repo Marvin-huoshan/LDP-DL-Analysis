@@ -206,7 +206,7 @@ def calculate_prob_according_sample_size(num_samples, d, g, h, target_set, split
     # ratio = 1
 
     N_effective = num_samples * ratio
-    print('N_effective: ', N_effective)
+    #print('N_effective: ', N_effective)
 
     K_min = 1
     K_max = len(target_set)
@@ -456,7 +456,7 @@ def process_attacker_server(i, n, ratio, target_set, g, domain, User_Seed, split
         if hashed_value == best_hashed_value:
             attack_vector[v] = 1
 
-    print(f'attacker:{i}, best_hashed_value:{best_hashed_value}, max_targets_mapped:{max_target_count}')
+    #print(f'attacker:{i}, best_hashed_value:{best_hashed_value}, max_targets_mapped:{max_target_count}')
     return index, attack_vector
 
 
@@ -579,7 +579,7 @@ def HST_Server(X, ratio, domain, epsilon, n, target_set, splits):
         else:
             y = -c
         y_values[idx] = y
-        print(f'Attacker {i}, idx: {idx}, positive_count: {positive_count}, negative_count: {negative_count}, y: {y}')
+        #print(f'Attacker {i}, idx: {idx}, positive_count: {positive_count}, negative_count: {negative_count}, y: {y}')
 
     support_list = y_values.reshape(-1, 1) * s_vectors
     ESTIMATE_DIST = np.sum(support_list, axis=0)
