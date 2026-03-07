@@ -187,6 +187,9 @@ def build_tasks(args):
                 for ratio in args.ratios:
                     for target_size in args.target_sizes:
                         for splits in args.splits:
+                            # Skip invalid combinations
+                            if protocol in ("OLH", "OLH_User", "OLH_Server") and splits > target_size:
+                                continue
                             config_count += 1
                             for exp_i in range(args.experiments):
                                 seed = args.seed + config_count * 1000 + exp_i
